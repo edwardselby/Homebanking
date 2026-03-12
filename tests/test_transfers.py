@@ -37,9 +37,9 @@ async def two_accounts(http):
 
     # Seed the funding account via direct ledger entry
     from bson import ObjectId
-    import app.database as database_module
+    from app.database import MongoDB
 
-    test_database = database_module.db
+    test_database = MongoDB.get_database()
     funding_doc = await test_database.accounts.find_one({"account_number": acc3_num})
     await test_database.ledger.insert_one({
         "account_id": funding_doc["_id"],

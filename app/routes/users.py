@@ -1,7 +1,7 @@
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Query
 
-from app.database import db
+from app.database import MongoDB
 from app.schemas.user import Address, UserCreate, UserResponse, UserUpdate
 from app.services.geocoding import geocode_address
 
@@ -39,10 +39,10 @@ async def create_user(payload: UserCreate):
     :returns: The created user with generated ID and coordinates.
     :raises HTTPException: 422 if validation fails (handled by FastAPI).
     """
-    doc = payload.model_dump()
+    doc = payload.model_dump(mode="json")
     coords = await geocode_address(payload.address)
     doc["coordinates"] = coords.model_dump() if coords else None
-    result = await db.users.insert_one(doc)
+    result = await MongoDB.get_database().users.insert_one(doc)
     doc["_id"] = result.inserted_id
     return user_doc_to_response(doc)
 
@@ -63,11 +63,11 @@ async def update_user(user_id: str, payload: UserUpdate):
     if not ObjectId.is_valid(user_id):
         raise HTTPException(status_code=404, detail="User not found")
 
-    existing = await db.users.find_one({"_id": ObjectId(user_id)})
+    existing = await MongoDB.get_database().users.find_one({"_id": ObjectId(user_id)})
     if not existing:
         raise HTTPException(status_code=404, detail="User not found")
 
-    update_data = payload.model_dump(exclude_unset=True)
+    update_data = payload.model_dump(exclude_unset=True, mode="json")
     if not update_data:
         return user_doc_to_response(existing)
 
@@ -77,8 +77,8 @@ async def update_user(user_id: str, payload: UserUpdate):
             coords = await geocode_address(payload.address)
             update_data["coordinates"] = coords.model_dump() if coords else None
 
-    await db.users.update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
-    updated = await db.users.find_one({"_id": ObjectId(user_id)})
+    await MongoDB.get_database().users.update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
+    updated = await MongoDB.get_database().users.find_one({"_id": ObjectId(user_id)})
     return user_doc_to_response(updated)
 
 
@@ -94,6 +94,6 @@ async def list_users(
     :returns: A list of user responses for the requested page.
     """
     skip = (page - 1) * limit
-    cursor = db.users.find().skip(skip).limit(limit)
+    cursor = MongoDB.get_database().users.find().skip(skip).limit(limit)
     users = await cursor.to_list(length=limit)
     return [user_doc_to_response(doc) for doc in users]

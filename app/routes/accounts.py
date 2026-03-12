@@ -1,7 +1,7 @@
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Query
 
-from app.database import db
+from app.database import MongoDB
 from app.schemas.account import AccountCreate, AccountResponse
 
 router = APIRouter(prefix="/api/users/{user_id}/accounts", tags=["accounts"])
@@ -15,7 +15,7 @@ async def next_account_number() -> int:
 
     :returns: The next sequential account number.
     """
-    result = await db.counters.find_one_and_update(
+    result = await MongoDB.get_database().counters.find_one_and_update(
         {"_id": "account_number"},
         {"$inc": {"seq": 1}},
         return_document=True,
@@ -33,7 +33,7 @@ async def get_balance(account_id: ObjectId) -> int:
         {"$match": {"account_id": account_id}},
         {"$group": {"_id": None, "total": {"$sum": "$amount"}}},
     ]
-    result = await db.ledger.aggregate(pipeline).to_list(length=1)
+    result = await MongoDB.get_database().ledger.aggregate(pipeline).to_list(length=1)
     return result[0]["total"] if result else 0
 
 
@@ -63,7 +63,7 @@ async def validate_user_exists(user_id: str) -> ObjectId:
     if not ObjectId.is_valid(user_id):
         raise HTTPException(status_code=404, detail="User not found")
     oid = ObjectId(user_id)
-    if not await db.users.find_one({"_id": oid}):
+    if not await MongoDB.get_database().users.find_one({"_id": oid}):
         raise HTTPException(status_code=404, detail="User not found")
     return oid
 
@@ -87,7 +87,7 @@ async def create_account(user_id: str, payload: AccountCreate):
         "account_number": account_number,
         "account_type": payload.account_type,
     }
-    result = await db.accounts.insert_one(doc)
+    result = await MongoDB.get_database().accounts.insert_one(doc)
     doc["_id"] = result.inserted_id
     return account_doc_to_response(doc, balance=0)
 
@@ -111,7 +111,7 @@ async def list_accounts(
     """
     user_oid = await validate_user_exists(user_id)
     skip = (page - 1) * limit
-    cursor = db.accounts.find({"user_id": user_oid}).skip(skip).limit(limit)
+    cursor = MongoDB.get_database().accounts.find({"user_id": user_oid}).skip(skip).limit(limit)
     accounts = await cursor.to_list(length=limit)
     results = []
     for doc in accounts:

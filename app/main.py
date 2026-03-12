@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.config import settings
-from app.database import db
+from app.database import MongoDB
 from app.routes.accounts import router as accounts_router
 from app.seed import seed_database
 from app.routes.transfers import router as transfers_router
@@ -11,6 +11,7 @@ from app.routes.users import router as users_router
 
 
 async def ensure_indexes():
+    db = MongoDB.get_database()
     await db.accounts.create_index("account_number", unique=True)
     await db.accounts.create_index("user_id")
     await db.ledger.create_index("account_id")
@@ -23,9 +24,8 @@ async def ensure_indexes():
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     await ensure_indexes()
-    # only seed if env var set, seed also checks for empty database as fallback
     if settings.seed_on_startup:
         await seed_database()
     yield

@@ -9,7 +9,7 @@ from datetime import date, datetime, timezone
 
 from bson import ObjectId
 
-from app.database import db
+from app.database import MongoDB
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ async def seed_database():
 
     Skips entirely if any users already exist in the database.
     """
-    if await db.users.count_documents({}) > 0:
+    if await MongoDB.get_database().users.count_documents({}) > 0:
         logger.info("Database already seeded, skipping")
         return
 
@@ -75,13 +75,13 @@ async def seed_database():
     # Insert users
     user_ids = []
     for user_data in SEED_USERS:
-        result = await db.users.insert_one(user_data)
+        result = await MongoDB.get_database().users.insert_one(user_data)
         user_ids.append(result.inserted_id)
 
     # Insert accounts with sequential numbers
     account_ids = []
     for account_data in SEED_ACCOUNTS:
-        counter = await db.counters.find_one_and_update(
+        counter = await MongoDB.get_database().counters.find_one_and_update(
             {"_id": "account_number"},
             {"$inc": {"seq": 1}},
             return_document=True,
@@ -91,7 +91,7 @@ async def seed_database():
             "account_number": counter["seq"],
             "account_type": account_data["account_type"],
         }
-        result = await db.accounts.insert_one(doc)
+        result = await MongoDB.get_database().accounts.insert_one(doc)
         account_ids.append(result.inserted_id)
 
     # Insert initial deposit ledger entries
@@ -106,7 +106,7 @@ async def seed_database():
         }
         for dep in INITIAL_DEPOSITS
     ]
-    await db.ledger.insert_many(ledger_entries)
+    await MongoDB.get_database().ledger.insert_many(ledger_entries)
 
     logger.info("Seeded %d users, %d accounts, %d ledger entries",
                 len(SEED_USERS), len(SEED_ACCOUNTS), len(ledger_entries))

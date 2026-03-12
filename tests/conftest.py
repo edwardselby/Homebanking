@@ -10,6 +10,7 @@ from httpx import ASGITransport, AsyncClient
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.config import settings
+from app.database import MongoDB
 from app.main import app, ensure_indexes
 
 TEST_DB_NAME = "homebanking_test"
@@ -19,30 +20,23 @@ TEST_DB_NAME = "homebanking_test"
 async def test_db():
     """Provide a clean test database for each test.
 
-    Creates a fresh Motor client bound to the current event loop, swaps the
-    ``db`` reference in all modules, ensures indexes exist, and drops the
-    database after the test completes.
+    Creates a fresh Motor client, overrides ``MongoDB.get_database()``
+    and ``MongoDB.get_client()`` to return test instances, and drops
+    the test database after the test completes.
     """
-    import app.database as database_module
-    import app.routes.accounts as accounts_module
-    import app.routes.users as users_module
-    import app.services.transfer as transfer_module
-
     test_client = AsyncIOMotorClient(settings.mongodb_uri)
     test_database = test_client[TEST_DB_NAME]
 
-    # Swap db reference in all modules
-    database_module.db = test_database
-    accounts_module.db = test_database
-    users_module.db = test_database
-    transfer_module.db = test_database
-
-    # Also swap the client so transactions use the test client
-    database_module.client = test_client
-    transfer_module.client = test_client
+    original_get_db = MongoDB.get_database
+    original_get_client = MongoDB.get_client
+    MongoDB.get_database = lambda: test_database
+    MongoDB.get_client = lambda: test_client
 
     await ensure_indexes()
     yield test_database
+
+    MongoDB.get_database = original_get_db
+    MongoDB.get_client = original_get_client
     await test_client.drop_database(TEST_DB_NAME)
     test_client.close()
 

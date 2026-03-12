@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from fastapi import HTTPException
 
-from app.database import client, db
+from app.database import MongoDB
 
 
 async def get_balance_in_session(account_id: ObjectId, session) -> int:
@@ -17,7 +17,7 @@ async def get_balance_in_session(account_id: ObjectId, session) -> int:
         {"$match": {"account_id": account_id}},
         {"$group": {"_id": None, "total": {"$sum": "$amount"}}},
     ]
-    result = await db.ledger.aggregate(pipeline, session=session).to_list(length=1)
+    result = await MongoDB.get_database().ledger.aggregate(pipeline, session=session).to_list(length=1)
     return result[0]["total"] if result else 0
 
 
@@ -42,15 +42,15 @@ async def execute_transfer(
     if from_account_number == to_account_number:
         raise HTTPException(status_code=400, detail="Cannot transfer to the same account")
 
-    async with await client.start_session() as session:
+    async with await MongoDB.get_client().start_session() as session:
         async with session.start_transaction():
-            from_doc = await db.accounts.find_one(
+            from_doc = await MongoDB.get_database().accounts.find_one(
                 {"account_number": from_account_number}, session=session
             )
             if not from_doc:
                 raise HTTPException(status_code=404, detail="Source account not found")
 
-            to_doc = await db.accounts.find_one(
+            to_doc = await MongoDB.get_database().accounts.find_one(
                 {"account_number": to_account_number}, session=session
             )
             if not to_doc:
@@ -63,7 +63,7 @@ async def execute_transfer(
             transfer_id = ObjectId()
             now = datetime.now(timezone.utc)
 
-            await db.ledger.insert_many(
+            await MongoDB.get_database().ledger.insert_many(
                 [
                     {
                         "account_id": from_doc["_id"],
