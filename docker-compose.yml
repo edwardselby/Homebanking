@@ -1,0 +1,31 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      HB_MONGODB_URI: "mongodb://mongo:27017/?replicaSet=rs0&directConnection=true"
+      HB_DATABASE_NAME: "homebanking"
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    volumes:
+      - mongo_data:/data/db
+
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      - mongo
+    restart: "no"
+    volumes:
+      - ./scripts/mongo-init.sh:/scripts/mongo-init.sh:ro
+    entrypoint: ["bash", "/scripts/mongo-init.sh"]
+
+volumes:
+  mongo_data:
