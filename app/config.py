@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     mongodb_uri: str = "mongodb://localhost:27017"
     database_name: str = "homebanking"
     app_name: str = "Homebanking API"
+    seed_on_startup: bool = False
 
     model_config = {"env_prefix": "HB_"}
 

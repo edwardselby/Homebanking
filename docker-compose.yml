@@ -6,6 +6,7 @@ services:
     environment:
       HB_MONGODB_URI: "mongodb://mongo:27017/?replicaSet=rs0&directConnection=true"
       HB_DATABASE_NAME: "homebanking"
+      HB_SEED_ON_STARTUP: "true"
     depends_on:
       mongo-init:
         condition: service_completed_successfully

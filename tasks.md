@@ -37,7 +37,7 @@ Ordered implementation plan. Each task is independently verifiable.
 
 ## Phase 5 — Polish
 
-- [ ] **T20** — Seed data script (users, accounts, initial deposit ledger entries) `[R009]`
-- [ ] **T21** — Transfer tests (atomicity, insufficient funds, same-account, invalid amounts) `[D006]`
-- [ ] **T22** — Validation tests (required fields, types, edge cases) `[D006]`
+- [x] **T20** — Seed data script (users, accounts, initial deposit ledger entries) `[R009]`
+- [x] **T21** — Transfer tests (atomicity, insufficient funds, same-account, invalid amounts) `[D006]`
+- [x] **T22** — Validation tests (required fields, types, edge cases) `[D006]`
 - [ ] **T23** — Final review — error handling, response consistency, docs check
