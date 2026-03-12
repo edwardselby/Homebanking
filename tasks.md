@@ -24,10 +24,10 @@ Ordered implementation plan. Each task is independently verifiable.
 
 ## Phase 3 — Accounts
 
-- [ ] **T13** — Account schemas (create request, document, response) `[D003]`
-- [ ] **T14** — Account number sequence generator (MongoDB counter document) `[D008]`
-- [ ] **T15** — POST /api/users/{user_id}/accounts — create account `[R005]`
-- [ ] **T16** — GET /api/users/{user_id}/accounts — list accounts with derived balances `[R006, D007]`
+- [x] **T13** — Account schemas (create request, document, response) `[D003]`
+- [x] **T14** — Account number sequence generator (MongoDB counter document) `[D008]`
+- [x] **T15** — POST /api/users/{user_id}/accounts — create account `[R005]`
+- [x] **T16** — GET /api/users/{user_id}/accounts — list accounts with derived balances `[R006, D007]`
 
 ## Phase 4 — Transfers
 

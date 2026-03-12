@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from app.config import settings
 from app.database import db
+from app.routes.accounts import router as accounts_router
 from app.routes.users import router as users_router
 
 
@@ -27,6 +28,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 app.include_router(users_router)
+app.include_router(accounts_router)
 
 
 @app.get("/health")
