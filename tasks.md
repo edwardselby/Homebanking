@@ -31,9 +31,9 @@ Ordered implementation plan. Each task is independently verifiable.
 
 ## Phase 4 — Transfers
 
-- [ ] **T17** — Ledger entry schema `[D007, D008]`
-- [ ] **T18** — Transfer service — atomic debit/credit within MongoDB transaction `[R007, D007]`
-- [ ] **T19** — POST /api/transfers — transfer endpoint with validation `[R007]`
+- [x] **T17** — Ledger entry schema `[D007, D008]`
+- [x] **T18** — Transfer service — atomic debit/credit within MongoDB transaction `[R007, D007]`
+- [x] **T19** — POST /api/transfers — transfer endpoint with validation `[R007]`
 
 ## Phase 5 — Polish
 
