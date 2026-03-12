@@ -6,21 +6,21 @@ Ordered implementation plan. Each task is independently verifiable.
 
 ## Phase 1 — Infrastructure
 
-- [ ] **T01** — Init uv project, install dependencies, export requirements.txt `[D009]`
-- [ ] **T02** — Scaffold project structure (app/, schemas/, routes/, services/, tests/)
-- [ ] **T03** — Docker-compose with FastAPI + MongoDB replica set `[R008]`
-- [ ] **T04** — Database connection module with Motor async client `[R008]`
-- [ ] **T05** — App entry point with lifespan events and index creation on startup `[R008, D004]`
-- [ ] **T06** — Config module (environment-based settings via Pydantic) `[D001]`
+- [x] **T01** — Init uv project, install dependencies, export requirements.txt `[D009]`
+- [x] **T02** — Scaffold project structure (app/, schemas/, routes/, services/, tests/)
+- [x] **T03** — Docker-compose with FastAPI + MongoDB replica set `[R008]`
+- [x] **T04** — Database connection module with Motor async client `[R008]`
+- [x] **T05** — App entry point with lifespan events and index creation on startup `[R008, D004]`
+- [x] **T06** — Config module (environment-based settings via Pydantic) `[D001]`
 
 ## Phase 2 — Users
 
-- [ ] **T07** — User schemas (create request, update request, document, response) `[D003]`
-- [ ] **T08** — POST /api/users — create user `[R001]`
-- [ ] **T09** — PUT /api/users/{user_id} — update user `[R002]`
-- [ ] **T10** — GET /api/users — list users with pagination `[R003]`
-- [ ] **T11** — Geocoding service (address → coordinates via Nominatim) `[R004, D005]`
-- [ ] **T12** — Wire geocoding into user create and update routes `[R004]`
+- [x] **T07** — User schemas (create request, update request, document, response) `[D003]`
+- [x] **T08** — POST /api/users — create user `[R001]`
+- [x] **T09** — PUT /api/users/{user_id} — update user `[R002]`
+- [x] **T10** — GET /api/users — list users with pagination `[R003]`
+- [x] **T11** — Geocoding service (address → coordinates via Nominatim) `[R004, D005]`
+- [x] **T12** — Wire geocoding into user create and update routes `[R004]`
 
 ## Phase 3 — Accounts
 

@@ -4,10 +4,10 @@ from fastapi import FastAPI
 
 from app.config import settings
 from app.database import db
+from app.routes.users import router as users_router
 
 
 async def ensure_indexes():
-    await db.users.create_index("email", unique=True, sparse=True)
     await db.accounts.create_index("account_number", unique=True)
     await db.accounts.create_index("user_id")
     await db.ledger.create_index("account_id")
@@ -26,6 +26,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
+app.include_router(users_router)
 
 
 @app.get("/health")
