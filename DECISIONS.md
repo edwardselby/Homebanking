@@ -102,6 +102,16 @@ This document records architectural decisions, trade-offs, and reasoning through
 
 ---
 
+## D010 — Docstring format: reStructuredText
+
+**Context:** Need a consistent docstring convention across the codebase.
+
+**Decision:** Use reStructuredText (rST) field lists (`:param:`, `:returns:`, `:raises:`) for all public functions and methods.
+
+**Reasoning:** rST is the native format for Sphinx and the most widely adopted convention in the Python ecosystem. It keeps docstrings machine-parseable for documentation generation while remaining readable in source. Google and NumPy styles were considered but rST is more appropriate for a backend API codebase of this size.
+
+---
+
 ## Resolved Questions
 
 - **Account number generation** — Auto-generated sequential integer (e.g. `10001`, `10002`). MongoDB ObjectId used internally; the account number is the user-facing identifier. Sequence managed via a MongoDB counter document.

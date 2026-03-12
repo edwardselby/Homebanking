@@ -9,6 +9,11 @@ router = APIRouter(prefix="/api/users", tags=["users"])
 
 
 def user_doc_to_response(doc: dict) -> UserResponse:
+    """Convert a MongoDB user document to an API response model.
+
+    :param doc: Raw MongoDB document with ``_id`` as :class:`~bson.ObjectId`.
+    :returns: Serialisable user response with string ID and optional coordinates.
+    """
     coords = None
     if doc.get("coordinates"):
         coords = doc["coordinates"]
@@ -24,6 +29,16 @@ def user_doc_to_response(doc: dict) -> UserResponse:
 
 @router.post("", status_code=201, response_model=UserResponse)
 async def create_user(payload: UserCreate):
+    """Create a new user and geocode their address.
+
+    Coordinates are resolved via Nominatim and stored alongside the user
+    document. If geocoding fails the user is still created with ``null``
+    coordinates.
+
+    :param payload: Validated user creation data including address.
+    :returns: The created user with generated ID and coordinates.
+    :raises HTTPException: 422 if validation fails (handled by FastAPI).
+    """
     doc = payload.model_dump()
     coords = await geocode_address(payload.address)
     doc["coordinates"] = coords.model_dump() if coords else None
@@ -34,6 +49,17 @@ async def create_user(payload: UserCreate):
 
 @router.put("/{user_id}", response_model=UserResponse)
 async def update_user(user_id: str, payload: UserUpdate):
+    """Update an existing user's details.
+
+    Only fields included in the request body are modified. Coordinates are
+    re-geocoded only when the address actually changes, avoiding unnecessary
+    Nominatim calls.
+
+    :param user_id: MongoDB ObjectId as a hex string.
+    :param payload: Partial user data — unset fields are left unchanged.
+    :returns: The full updated user document.
+    :raises HTTPException: 404 if the user does not exist.
+    """
     if not ObjectId.is_valid(user_id):
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -61,6 +87,12 @@ async def list_users(
     page: int = Query(default=1, ge=1),
     limit: int = Query(default=20, ge=1, le=100),
 ):
+    """List all users with page-based pagination.
+
+    :param page: 1-indexed page number (default ``1``).
+    :param limit: Maximum users per page, capped at 100 (default ``20``).
+    :returns: A list of user responses for the requested page.
+    """
     skip = (page - 1) * limit
     cursor = db.users.find().skip(skip).limit(limit)
     users = await cursor.to_list(length=limit)
