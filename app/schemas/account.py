@@ -1,8 +1,12 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
+
+AccountType = Literal["current", "savings"]
 
 
 class AccountCreate(BaseModel):
-    account_type: str = Field(min_length=1, examples=["current", "savings", "credit_card"])
+    account_type: AccountType
 
 
 class AccountResponse(BaseModel):
@@ -15,5 +19,5 @@ class AccountResponse(BaseModel):
     id: str
     user_id: str
     account_number: int
-    account_type: str
+    account_type: AccountType
     balance: int = 0

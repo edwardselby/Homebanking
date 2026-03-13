@@ -30,29 +30,17 @@ async def two_accounts(http):
     acc1_num = acc1.json()["account_number"]
     acc2_num = acc2.json()["account_number"]
 
-    # Fund the current account with 1000.00 (100000 cents) via a transfer
-    # We need a third account as the funding source
-    acc3 = await http.post(f"/api/users/{user_id}/accounts", json={"account_type": "funding"})
-    acc3_num = acc3.json()["account_number"]
-
-    # Seed the funding account via direct ledger entry
+    # Seed the current account with 1000.00 (100000 cents) via direct ledger entry
     from bson import ObjectId
     from app.database import MongoDB
 
     test_database = MongoDB.get_database()
-    funding_doc = await test_database.accounts.find_one({"account_number": acc3_num})
+    acc1_doc = await test_database.accounts.find_one({"account_number": acc1_num})
     await test_database.ledger.insert_one({
-        "account_id": funding_doc["_id"],
+        "account_id": acc1_doc["_id"],
         "transfer_id": ObjectId(),
         "amount": 100000,
         "timestamp": "2024-01-01T00:00:00Z",
-    })
-
-    # Transfer to current account
-    await http.post("/api/transfers", json={
-        "from_account": acc3_num,
-        "to_account": acc1_num,
-        "amount": 100000,
     })
 
     return acc1_num, acc2_num

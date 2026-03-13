@@ -82,6 +82,18 @@ This document records architectural decisions, trade-offs, and reasoning through
 
 ---
 
+## D007a — MongoDB transactions for transfer atomicity
+
+**Context:** Each transfer writes two ledger entries (debit and credit). If the process crashes or errors after writing the debit but before the credit, money disappears from the system. The ledger pattern (D007) demands that every transfer is all-or-nothing.
+
+**Decision:** Wrap each transfer in a MongoDB multi-document transaction with snapshot read concern and majority write concern. The transaction guarantees both ledger entries are committed together or neither is.
+
+**Reasoning:** Transactions and optimistic concurrency (D011) solve different problems. The transaction provides **atomicity** — the two ledger inserts and two version bumps either all commit or all roll back. The version check provides **isolation** — detecting when a concurrent transfer has invalidated our balance read. Without the transaction, the version check could detect a conflict but leave a half-written transfer. Without the version check, the transaction would commit cleanly but allow overdrafts from concurrent reads.
+
+**Trade-off:** MongoDB transactions require a replica set, even for single-node deployments (`directConnection=true` with `--replSet`). This adds docker-compose complexity (an init container to configure the replica set). Accepted — atomicity of financial operations is non-negotiable.
+
+---
+
 ## D008 — Money stored as integer cents
 
 **Context:** Financial amounts need precise representation. Floats introduce rounding errors (e.g. `0.1 + 0.2 ≠ 0.3`).
@@ -109,6 +121,23 @@ This document records architectural decisions, trade-offs, and reasoning through
 **Decision:** Use reStructuredText (rST) field lists (`:param:`, `:returns:`, `:raises:`) for all public functions and methods.
 
 **Reasoning:** rST is the native format for Sphinx and the most widely adopted convention in the Python ecosystem. It keeps docstrings machine-parseable for documentation generation while remaining readable in source. Google and NumPy styles were considered but rST is more appropriate for a backend API codebase of this size.
+
+---
+
+## D011 — Optimistic concurrency control for transfers
+
+**Context:** MongoDB snapshot isolation detects write-write conflicts on the same document, but our append-only ledger only *inserts* new documents — no two concurrent transactions touch the same row. This means 10 concurrent transfers of the full balance all read the same snapshot, all pass the balance check, and all commit — overdrawing the account.
+
+**Decision:** Optimistic concurrency via a `version` counter on each account document. Inside the transaction, the transfer reads the account's version, performs the balance check, writes ledger entries, then atomically increments the version with a conditional update (`{_id, version: expected}`). If the version was already bumped by a concurrent transaction, `matched_count == 0` and the transfer retries (up to 3 attempts). After exhausting retries, a 409 Conflict is returned.
+
+**Alternatives considered:**
+- **Pessimistic locking** (distributed lock per account): Serialises all transfers for an account, kills throughput under contention. Overkill for this scale.
+- **Cached balance on account doc** (`$inc` as conflict anchor): Creates a second source of truth that can drift from the ledger. The version field is explicitly a concurrency mechanism, not shadow state.
+- **Database-level serialisable isolation**: Not available in MongoDB — snapshot isolation doesn't detect insert-vs-read conflicts.
+
+**Reasoning:** The version field has a single clear purpose: concurrency control. The ledger remains the sole source of truth for balances. Retries only happen under actual contention, and the mechanism is transparent and well-understood. This is the standard optimistic concurrency pattern used in production financial systems.
+
+**Trade-off:** Under extreme contention on a single account, retries can exhaust and return 409. In production you'd combine this with backoff/jitter or escalate to a pessimistic lock for hot accounts. For this assessment, 3 retries is sufficient.
 
 ---
 

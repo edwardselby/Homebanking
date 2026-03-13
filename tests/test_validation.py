@@ -71,6 +71,22 @@ class TestUserValidation:
         assert "id" in data
 
     @pytest.mark.asyncio
+    async def test_create_user_html_in_name(self, http):
+        """GIVEN HTML tags in first_name WHEN creating a user THEN return 422."""
+        payload = {**VALID_USER, "first_name": "<script>alert(1)</script>"}
+        resp = await http.post("/api/users", json=payload)
+        assert resp.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_create_user_html_in_address(self, http):
+        """GIVEN HTML tags in address fields WHEN creating a user THEN return 422."""
+        payload = {**VALID_USER, "address": {
+            **VALID_USER["address"], "street": '<img src=x onerror=alert(1)>',
+        }}
+        resp = await http.post("/api/users", json=payload)
+        assert resp.status_code == 422
+
+    @pytest.mark.asyncio
     async def test_update_nonexistent_user(self, http):
         """GIVEN a nonexistent user ID WHEN updating THEN return 404."""
         resp = await http.put("/api/users/000000000000000000000000", json={
@@ -105,6 +121,16 @@ class TestAccountValidation:
         user_id = user_resp.json()["id"]
         resp = await http.post(f"/api/users/{user_id}/accounts", json={
             "account_type": "",
+        })
+        assert resp.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_create_account_invalid_type(self, http):
+        """GIVEN an invalid account_type WHEN creating an account THEN return 422."""
+        user_resp = await http.post("/api/users", json=VALID_USER)
+        user_id = user_resp.json()["id"]
+        resp = await http.post(f"/api/users/{user_id}/accounts", json={
+            "account_type": "crypto",
         })
         assert resp.status_code == 422
 

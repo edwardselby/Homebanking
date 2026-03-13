@@ -86,6 +86,7 @@ async def create_account(user_id: str, payload: AccountCreate):
         "user_id": user_oid,
         "account_number": account_number,
         "account_type": payload.account_type,
+        "version": 0,
     }
     result = await MongoDB.get_database().accounts.insert_one(doc)
     doc["_id"] = result.inserted_id

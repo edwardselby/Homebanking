@@ -1,14 +1,27 @@
+import re
 from datetime import date
+from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import AfterValidator, BaseModel, Field
+
+HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def _no_html(value: str) -> str:
+    if HTML_TAG_RE.search(value):
+        raise ValueError("HTML tags are not allowed")
+    return value
+
+
+SafeStr = Annotated[str, AfterValidator(_no_html)]
 
 
 class Address(BaseModel):
-    street: str
-    city: str
-    state: str | None = None
-    postal_code: str
-    country: str
+    street: SafeStr
+    city: SafeStr
+    state: SafeStr | None = None
+    postal_code: SafeStr
+    country: SafeStr
 
 
 class Coordinates(BaseModel):
@@ -17,15 +30,15 @@ class Coordinates(BaseModel):
 
 
 class UserCreate(BaseModel):
-    first_name: str = Field(min_length=1)
-    last_name: str = Field(min_length=1)
+    first_name: SafeStr = Field(min_length=1)
+    last_name: SafeStr = Field(min_length=1)
     date_of_birth: date
     address: Address
 
 
 class UserUpdate(BaseModel):
-    first_name: str | None = Field(default=None, min_length=1)
-    last_name: str | None = Field(default=None, min_length=1)
+    first_name: SafeStr | None = Field(default=None, min_length=1)
+    last_name: SafeStr | None = Field(default=None, min_length=1)
     date_of_birth: date | None = None
     address: Address | None = None
 

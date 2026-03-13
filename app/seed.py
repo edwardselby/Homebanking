@@ -90,6 +90,7 @@ async def seed_database():
             "user_id": user_ids[account_data["user_index"]],
             "account_number": counter["seq"],
             "account_type": account_data["account_type"],
+            "version": 0,
         }
         result = await MongoDB.get_database().accounts.insert_one(doc)
         account_ids.append(result.inserted_id)
