@@ -1,5 +1,7 @@
 # Homebanking API
 
+[![CI](https://github.com/edwardselby/Homebanking/actions/workflows/ci.yml/badge.svg)](https://github.com/edwardselby/Homebanking/actions/workflows/ci.yml)
+
 RESTful API for a small bank's homebanking system. Built with FastAPI, MongoDB, and an append-only ledger for financial integrity.
 
 ## Quick Start
