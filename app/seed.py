@@ -53,7 +53,7 @@ INITIAL_DEPOSITS = [
     {"account_index": 0, "amount": 250000},  # Alice current: 2500.00
     {"account_index": 1, "amount": 100000},  # Alice savings: 1000.00
     {"account_index": 2, "amount": 175000},  # Bob current: 1750.00
-    {"account_index": 3, "amount": 50000},   # Bob savings: 500.00
+    {"account_index": 3, "amount": 50000},  # Bob savings: 500.00
 ]
 
 
@@ -109,5 +109,9 @@ async def seed_database():
     ]
     await MongoDB.get_database().ledger.insert_many(ledger_entries)
 
-    logger.info("Seeded %d users, %d accounts, %d ledger entries",
-                len(SEED_USERS), len(SEED_ACCOUNTS), len(ledger_entries))
+    logger.info(
+        "Seeded %d users, %d accounts, %d ledger entries",
+        len(SEED_USERS),
+        len(SEED_ACCOUNTS),
+        len(ledger_entries),
+    )

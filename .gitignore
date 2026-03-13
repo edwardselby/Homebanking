@@ -12,6 +12,10 @@ wheels/
 # Environment
 .env
 
+# IDE
+.vscode/
+.idea/
+
 # Testing
 .pytest_cache/
 .mypy_cache/

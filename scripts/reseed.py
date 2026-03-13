@@ -9,7 +9,6 @@ Connects using the same settings as the application (HB_MONGODB_URI, etc.).
 import asyncio
 import logging
 
-from app.config import settings
 from app.database import MongoDB
 from app.main import ensure_indexes
 from app.seed import seed_database

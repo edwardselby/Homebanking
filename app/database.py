@@ -16,12 +16,20 @@ class MongoDB:
 
     @classmethod
     def get_client(cls) -> AsyncIOMotorClient:
+        """Return the shared Motor client, creating it on first access.
+
+        :returns: The singleton :class:`~motor.motor_asyncio.AsyncIOMotorClient`.
+        """
         if cls._client is None:
             cls._client = AsyncIOMotorClient(settings.mongodb_uri)
         return cls._client
 
     @classmethod
     def get_database(cls):
+        """Return the application database, creating the client if needed.
+
+        :returns: The Motor database instance for :attr:`settings.database_name`.
+        """
         if cls._db is None:
             cls._db = cls.get_client()[settings.database_name]
         return cls._db

@@ -5,7 +5,6 @@ Maps to requirements R001, R002, R005, and R007.
 
 import pytest
 
-
 VALID_USER = {
     "first_name": "Jane",
     "last_name": "Doe",
@@ -80,26 +79,36 @@ class TestUserValidation:
     @pytest.mark.asyncio
     async def test_create_user_html_in_address(self, http):
         """GIVEN HTML tags in address fields WHEN creating a user THEN return 422."""
-        payload = {**VALID_USER, "address": {
-            **VALID_USER["address"], "street": '<img src=x onerror=alert(1)>',
-        }}
+        payload = {
+            **VALID_USER,
+            "address": {
+                **VALID_USER["address"],
+                "street": "<img src=x onerror=alert(1)>",
+            },
+        }
         resp = await http.post("/api/users", json=payload)
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
     async def test_update_nonexistent_user(self, http):
         """GIVEN a nonexistent user ID WHEN updating THEN return 404."""
-        resp = await http.put("/api/users/000000000000000000000000", json={
-            "first_name": "Updated",
-        })
+        resp = await http.put(
+            "/api/users/000000000000000000000000",
+            json={
+                "first_name": "Updated",
+            },
+        )
         assert resp.status_code == 404
 
     @pytest.mark.asyncio
     async def test_update_invalid_object_id(self, http):
         """GIVEN an invalid ObjectId WHEN updating THEN return 404."""
-        resp = await http.put("/api/users/not-an-id", json={
-            "first_name": "Updated",
-        })
+        resp = await http.put(
+            "/api/users/not-an-id",
+            json={
+                "first_name": "Updated",
+            },
+        )
         assert resp.status_code == 404
 
 
@@ -119,9 +128,12 @@ class TestAccountValidation:
         """GIVEN an empty account_type WHEN creating an account THEN return 422."""
         user_resp = await http.post("/api/users", json=VALID_USER)
         user_id = user_resp.json()["id"]
-        resp = await http.post(f"/api/users/{user_id}/accounts", json={
-            "account_type": "",
-        })
+        resp = await http.post(
+            f"/api/users/{user_id}/accounts",
+            json={
+                "account_type": "",
+            },
+        )
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
@@ -129,9 +141,12 @@ class TestAccountValidation:
         """GIVEN an invalid account_type WHEN creating an account THEN return 422."""
         user_resp = await http.post("/api/users", json=VALID_USER)
         user_id = user_resp.json()["id"]
-        resp = await http.post(f"/api/users/{user_id}/accounts", json={
-            "account_type": "crypto",
-        })
+        resp = await http.post(
+            f"/api/users/{user_id}/accounts",
+            json={
+                "account_type": "crypto",
+            },
+        )
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
@@ -149,9 +164,12 @@ class TestAccountValidation:
         with a sequential account number and zero balance."""
         user_resp = await http.post("/api/users", json=VALID_USER)
         user_id = user_resp.json()["id"]
-        resp = await http.post(f"/api/users/{user_id}/accounts", json={
-            "account_type": "current",
-        })
+        resp = await http.post(
+            f"/api/users/{user_id}/accounts",
+            json={
+                "account_type": "current",
+            },
+        )
         assert resp.status_code == 201
         data = resp.json()
         assert data["account_type"] == "current"
@@ -165,20 +183,26 @@ class TestTransferValidation:
     @pytest.mark.asyncio
     async def test_transfer_missing_amount(self, http):
         """GIVEN a missing amount WHEN submitting a transfer THEN return 422."""
-        resp = await http.post("/api/transfers", json={
-            "from_account": 10001,
-            "to_account": 10002,
-        })
+        resp = await http.post(
+            "/api/transfers",
+            json={
+                "from_account": 10001,
+                "to_account": 10002,
+            },
+        )
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
     async def test_transfer_string_amount(self, http):
         """GIVEN a string amount WHEN submitting a transfer THEN return 422."""
-        resp = await http.post("/api/transfers", json={
-            "from_account": 10001,
-            "to_account": 10002,
-            "amount": "fifty",
-        })
+        resp = await http.post(
+            "/api/transfers",
+            json={
+                "from_account": 10001,
+                "to_account": 10002,
+                "amount": "fifty",
+            },
+        )
         assert resp.status_code == 422
 
     @pytest.mark.asyncio

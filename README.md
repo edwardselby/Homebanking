@@ -10,6 +10,8 @@ docker-compose up
 
 API available at [http://localhost:8000](http://localhost:8000). Interactive docs at [http://localhost:8000/docs](http://localhost:8000/docs).
 
+> **Note:** MongoDB must be running as a replica set for transactions to work. The provided `docker-compose.yml` handles this automatically.
+
 The stack starts with seed data (two users, four accounts with balances) so you can test immediately.
 
 ## Quick Tour

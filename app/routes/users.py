@@ -77,7 +77,9 @@ async def update_user(user_id: str, payload: UserUpdate):
             coords = await geocode_address(payload.address)
             update_data["coordinates"] = coords.model_dump() if coords else None
 
-    await MongoDB.get_database().users.update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
+    await MongoDB.get_database().users.update_one(
+        {"_id": ObjectId(user_id)}, {"$set": update_data}
+    )
     updated = await MongoDB.get_database().users.find_one({"_id": ObjectId(user_id)})
     return user_doc_to_response(updated)
 

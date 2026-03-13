@@ -18,6 +18,13 @@ logging.basicConfig(
 
 
 async def ensure_indexes():
+    """Create required MongoDB indexes and initialise the account-number counter.
+
+    Indexes ensure uniqueness on account numbers and fast lookups on
+    ``user_id`` and ``account_id`` foreign keys.  The counter document
+    seeds the auto-increment sequence used by
+    :func:`~app.routes.accounts.next_account_number`.
+    """
     db = MongoDB.get_database()
     await db.accounts.create_index("account_number", unique=True)
     await db.accounts.create_index("user_id")
@@ -32,6 +39,7 @@ async def ensure_indexes():
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    """Application lifespan: set up indexes and optionally seed data on startup."""
     await ensure_indexes()
     if settings.seed_on_startup:
         await seed_database()

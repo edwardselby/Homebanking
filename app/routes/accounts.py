@@ -112,7 +112,12 @@ async def list_accounts(
     """
     user_oid = await validate_user_exists(user_id)
     skip = (page - 1) * limit
-    cursor = MongoDB.get_database().accounts.find({"user_id": user_oid}).skip(skip).limit(limit)
+    cursor = (
+        MongoDB.get_database()
+        .accounts.find({"user_id": user_oid})
+        .skip(skip)
+        .limit(limit)
+    )
     accounts = await cursor.to_list(length=limit)
     results = []
     for doc in accounts:

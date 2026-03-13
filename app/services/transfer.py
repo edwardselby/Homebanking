@@ -26,7 +26,11 @@ async def get_balance_in_session(account_id: ObjectId, session) -> int:
         {"$match": {"account_id": account_id}},
         {"$group": {"_id": None, "total": {"$sum": "$amount"}}},
     ]
-    result = await MongoDB.get_database().ledger.aggregate(pipeline, session=session).to_list(length=1)
+    result = (
+        await MongoDB.get_database()
+        .ledger.aggregate(pipeline, session=session)
+        .to_list(length=1)
+    )
     return result[0]["total"] if result else 0
 
 
@@ -56,7 +60,9 @@ async def execute_transfer(
     :raises HTTPException: 409 if the transfer could not be completed due to contention.
     """
     if from_account_number == to_account_number:
-        raise HTTPException(status_code=400, detail="Cannot transfer to the same account")
+        raise HTTPException(
+            status_code=400, detail="Cannot transfer to the same account"
+        )
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
@@ -64,12 +70,17 @@ async def execute_transfer(
         except _WriteConflict:
             logger.warning(
                 "Transfer write conflict (attempt %d/%d): %s -> %s, %d cents",
-                attempt, MAX_RETRIES, from_account_number, to_account_number, amount,
+                attempt,
+                MAX_RETRIES,
+                from_account_number,
+                to_account_number,
+                amount,
             )
             if attempt == MAX_RETRIES:
                 raise HTTPException(
                     status_code=409,
-                    detail="Transfer could not be completed due to contention, please retry",
+                    detail="Transfer could not be completed due to contention,"
+                    " please retry",
                 )
 
 
@@ -101,13 +112,17 @@ async def _try_transfer(
                     {"account_number": from_account_number}, session=session
                 )
                 if not from_doc:
-                    raise HTTPException(status_code=404, detail="Source account not found")
+                    raise HTTPException(
+                        status_code=404, detail="Source account not found"
+                    )
 
                 to_doc = await db.accounts.find_one(
                     {"account_number": to_account_number}, session=session
                 )
                 if not to_doc:
-                    raise HTTPException(status_code=404, detail="Destination account not found")
+                    raise HTTPException(
+                        status_code=404, detail="Destination account not found"
+                    )
 
                 from_balance = await get_balance_in_session(from_doc["_id"], session)
                 if from_balance < amount:
