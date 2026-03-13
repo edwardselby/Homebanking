@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --dev
+      - run: uv run black --check app/ tests/ scripts/
+      - run: uv run flake8 app/ tests/ scripts/
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --dev
+
+      - name: Start MongoDB replica set
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7 \
+            mongod --replSet rs0 --bind_ip_all
+          until docker exec mongo mongosh --eval "db.runCommand({ping:1})" --quiet; do
+            sleep 1
+          done
+          docker exec mongo mongosh --eval '
+            rs.initiate({_id: "rs0", members: [{_id: 0, host: "localhost:27017"}]})
+          '
+          until docker exec mongo mongosh --eval "rs.status().ok" --quiet | grep -q 1; do
+            sleep 1
+          done
+
+      - run: uv run pytest tests/ -v
+        env:
+          HB_MONGODB_URI: "mongodb://localhost:27017/?directConnection=true"
