@@ -46,12 +46,14 @@ homebanking/
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/users` | List users (paginated) |
 | POST | `/api/users` | Create user |
+| GET | `/api/users` | List users (paginated) |
+| GET | `/api/users/{id}` | Get single user |
 | PUT | `/api/users/{id}` | Update user |
-| GET | `/api/accounts` | List accounts (paginated) |
-| POST | `/api/accounts` | Create account |
+| POST | `/api/users/{user_id}/accounts` | Create account for user |
+| GET | `/api/users/{user_id}/accounts` | List accounts for user (paginated) |
 | POST | `/api/transfers` | Transfer between accounts |
+| GET | `/health` | Health check |
 
 Auto-generated documentation at `/docs` (Swagger UI) and `/redoc`.
 
@@ -61,7 +63,7 @@ Auto-generated documentation at `/docs` (Swagger UI) and `/redoc`.
 
 **Geocoding** — Coordinates are automatically computed from a user's address on create and update (only when address changes). Uses OpenStreetMap's Nominatim service.
 
-**Pagination** — List endpoints accept `?page=1&per_page=20` query parameters.
+**Pagination** — List endpoints accept `?page=1&limit=20` query parameters.
 
 ## Running
 

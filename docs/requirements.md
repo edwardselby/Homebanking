@@ -94,7 +94,7 @@ Atomically transfer funds from one account to another via the ledger.
 - GIVEN two valid accounts and sufficient funds WHEN a transfer is submitted THEN a debit entry and credit entry are appended to the ledger within a single transaction
 - GIVEN insufficient funds in the source account WHEN a transfer is submitted THEN return 400 and no ledger entries are created
 - GIVEN the same account as source and destination WHEN a transfer is submitted THEN return 400
-- GIVEN a zero or negative amount WHEN a transfer is submitted THEN return 400
+- GIVEN a zero or negative amount WHEN a transfer is submitted THEN return 422 (Pydantic schema validation rejects before business logic)
 - GIVEN a non-existent account WHEN a transfer is submitted THEN return 404
 - GIVEN a successful transfer WHEN the response is returned THEN include a transfer receipt with both account balances
 - GIVEN a failure mid-transaction WHEN the error occurs THEN the transaction is rolled back and no ledger entries persist

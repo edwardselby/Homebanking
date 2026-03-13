@@ -95,13 +95,13 @@ async def seed_database():
         result = await MongoDB.get_database().accounts.insert_one(doc)
         account_ids.append(result.inserted_id)
 
-    # Insert initial deposit ledger entries
+    # Insert initial deposit ledger entries — each deposit gets its own
+    # transfer_id since they are independent funding events.
     now = datetime.now(timezone.utc)
-    deposit_id = ObjectId()
     ledger_entries = [
         {
             "account_id": account_ids[dep["account_index"]],
-            "transfer_id": deposit_id,
+            "transfer_id": ObjectId(),
             "amount": dep["amount"],
             "timestamp": now,
         }

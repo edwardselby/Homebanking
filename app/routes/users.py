@@ -82,6 +82,22 @@ async def update_user(user_id: str, payload: UserUpdate):
     return user_doc_to_response(updated)
 
 
+@router.get("/{user_id}", response_model=UserResponse)
+async def get_user(user_id: str):
+    """Retrieve a single user by ID.
+
+    :param user_id: MongoDB ObjectId as a hex string.
+    :returns: The user document with coordinates.
+    :raises HTTPException: 404 if the user does not exist.
+    """
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=404, detail="User not found")
+    doc = await MongoDB.get_database().users.find_one({"_id": ObjectId(user_id)})
+    if not doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user_doc_to_response(doc)
+
+
 @router.get("", response_model=list[UserResponse])
 async def list_users(
     page: int = Query(default=1, ge=1),

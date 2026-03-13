@@ -1,6 +1,8 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from pymongo.errors import ConnectionFailure
 
 from app.config import settings
 from app.database import MongoDB
@@ -8,6 +10,11 @@ from app.routes.accounts import router as accounts_router
 from app.seed import seed_database
 from app.routes.transfers import router as transfers_router
 from app.routes.users import router as users_router
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s — %(message)s",
+)
 
 
 async def ensure_indexes():
@@ -39,4 +46,13 @@ app.include_router(transfers_router)
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    """Health check that verifies MongoDB connectivity.
+
+    :returns: ``{"status": "ok"}`` if the database is reachable,
+        ``{"status": "error", "detail": ...}`` otherwise.
+    """
+    try:
+        await MongoDB.get_client().admin.command("ping")
+        return {"status": "ok"}
+    except ConnectionFailure as exc:
+        return {"status": "error", "detail": str(exc)}

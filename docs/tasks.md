@@ -40,4 +40,4 @@ Ordered implementation plan. Each task is independently verifiable.
 - [x] **T20** — Seed data script (users, accounts, initial deposit ledger entries) `[R009]`
 - [x] **T21** — Transfer tests (atomicity, insufficient funds, same-account, invalid amounts) `[D006]`
 - [x] **T22** — Validation tests (required fields, types, edge cases) `[D006]`
-- [ ] **T23** — Final review — error handling, response consistency, docs check
+- [x] **T23** — Final review — error handling, response consistency, docs check
