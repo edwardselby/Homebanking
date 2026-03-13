@@ -1,7 +1,10 @@
 """Transfer endpoint tests covering atomicity, validation, and edge cases.
 
-Maps to requirement R007 and decision D007 (ledger pattern).
+Maps to requirement R007 and decisions D007 (ledger), D007a (transactions),
+and D011 (optimistic concurrency control).
 """
+
+import asyncio
 
 import pytest
 
@@ -171,3 +174,29 @@ async def test_balance_consistency_after_multiple_transfers(http, two_accounts):
     })
     data = resp.json()
     assert data["from_balance"] + data["to_balance"] == 100000
+
+
+@pytest.mark.asyncio
+async def test_concurrent_transfers_no_overdraft(http, two_accounts):
+    """GIVEN an account with 100000 cents WHEN 10 concurrent transfers of
+    100000 are attempted THEN exactly one succeeds and the balance never
+    goes negative (D011 optimistic concurrency)."""
+    acc1, acc2 = two_accounts
+
+    async def attempt_transfer():
+        return await http.post("/api/transfers", json={
+            "from_account": acc1, "to_account": acc2, "amount": 100000,
+        })
+
+    results = await asyncio.gather(*[attempt_transfer() for _ in range(10)])
+
+    succeeded = [r for r in results if r.status_code == 201]
+    rejected = [r for r in results if r.status_code in (400, 409)]
+
+    assert len(succeeded) == 1, f"Expected exactly 1 success, got {len(succeeded)}"
+    assert len(rejected) == 9
+
+    # Verify the successful transfer drained the account to zero
+    data = succeeded[0].json()
+    assert data["from_balance"] == 0
+    assert data["to_balance"] == 100000
